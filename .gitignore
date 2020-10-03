@@ -12,6 +12,7 @@
 
 *.icloud
 .vs/
+Logs/
 
 # Unity things that should not be versioned
 /Permis de voyage/Library/
