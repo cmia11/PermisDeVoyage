@@ -24,26 +24,48 @@ public abstract class TimeInversibleAction : MonoBehaviour
     private LocalTime timeline;
 
     /// <summary>
-    /// The time when the action entered the running state (undefined outside this state).
+    /// The local time at which this action started forward (or completed backwards).
+    /// It is defined iff StartForward() has been called at least once.
+    /// It may be lower than EndTime if the action started when the local time speed was negative.
     /// </summary>
-    public float? EntryTime { get; private set; }
+    public float? ForwardStartTime { get; private set; }
 
     /// <summary>
-    /// The local time at which this action started.
-    /// It is defined iff StartForward() or CompleteBackwards() have been called at least once.
+    /// The local time at which this action completed forward (or started backwards).
+    /// It is defined iff CompleteForward() has been called at least once.
     /// </summary>
-    public float? StartTime { get; private set; }
+    public float? ForwardCompleteTime { get; private set; }
 
     /// <summary>
-    /// The local time at which this action started.
-    /// It is defined iff CompleteForward() or StartBackwards() have been called at least once.
+    /// When in running state, returns the signed local time duration since the action started.
     /// </summary>
-    public float? EndTime { get; private set; }
+    public float? SignedTimeFromStart
+    {
+        get
+        {
+            if (CurrentState == State.RunningForward)
+            {
+                return TimeDirectionSign.Value * (LocalTime.Value - ForwardStartTime.Value);
+            }
+            else if (CurrentState == State.RunningBackwards)
+            {
+                return TimeDirectionSign * (ForwardCompleteTime.Value - LocalTime.Value);
+            }
+            else
+                return null;
+        }
+    }
 
     /// <summary>
     /// Is this action instantaneous?
     /// </summary>
     public abstract bool IsIntantaneous { get; }
+
+    /// <summary>
+    /// Returns 1 if the forward direction of the task is the same as the reference timeline (Time.time),
+    /// and -1 if it is the opposite direction. This is undefined until the action has started.
+    /// </summary>
+    public int? TimeDirectionSign { get; private set; }
 
     /// <summary>
     /// Position 
@@ -52,7 +74,8 @@ public abstract class TimeInversibleAction : MonoBehaviour
     {
         Unknown,
         Before,
-        Running,
+        RunningForward,
+        RunningBackwards,
         After,
     }
 
@@ -77,7 +100,8 @@ public abstract class TimeInversibleAction : MonoBehaviour
             case State.Before:
                 UpdateInBefore();
                 break;
-            case State.Running:
+            case State.RunningForward:
+            case State.RunningBackwards:
                 UpdateInRunning();
                 break;
             case State.After:
@@ -125,9 +149,7 @@ public abstract class TimeInversibleAction : MonoBehaviour
 
     protected virtual void UpdateInBefore()
     {
-        // If we know our start time and it's behind us then it's time to start.
-        // This is the only transition we can take.
-        if (LocalTime.Value >= StartTime)
+        if (TimeDirectionSign.Value * (LocalTime.Value - ForwardStartTime.Value) >= 0)
         {
             StartForward();
             if (IsIntantaneous)
@@ -148,21 +170,17 @@ public abstract class TimeInversibleAction : MonoBehaviour
         // The action implementation will tell us if it has completed in a direction or another
         bool isDone = OnMakingProgress();
         if (isDone)
-            if (LocalTime.DeltaTime > 0)
+            if (CurrentState == State.RunningForward)
                 CompleteForward();
-            else if (LocalTime.DeltaTime < 0)
+            else if (CurrentState == State.RunningBackwards)
                 CompleteBackwards();
             else
-                throw new InvalidOperationException(
-                    "Since the local time did not make progress this frame, it is ambiguous to try completing the action " +
-                    "because it's not clear whever it completed in the forward or backwards time direction.");
+                throw new InvalidOperationException("Invalid state, whould be running forward or backwards.");
     }
 
     protected virtual void UpdateInAfter()
     {
-        // If we know our start time and it's behind us then it's time to start.
-        // This is the only transition we can take.
-        if (LocalTime.Value <= EndTime)
+        if (TimeDirectionSign.Value * (ForwardCompleteTime.Value - LocalTime.Value) >= 0)
         {
             StartBackwards();
             if (IsIntantaneous)
@@ -183,16 +201,16 @@ public abstract class TimeInversibleAction : MonoBehaviour
         AssertValidTransition(
             CurrentState == State.Unknown || CurrentState == State.Before,
             "This operation can only be performed if the action never started, or its local time is before its last start time.");
-        StartTime = LocalTime.Value;
-        EntryTime = LocalTime.Value;
-        CurrentState = State.Running;
+        ForwardStartTime = LocalTime.Value;
+        TimeDirectionSign = (LocalTime.DeltaTime >= 0) ? 1 : -1;
+        CurrentState = State.RunningForward;
         OnStartedForward();
     }
 
     protected void CompleteForward()
     {
-        AssertValidTransition(CurrentState == State.Running, "This operation can only be performed if the action is running.");
-        EndTime = LocalTime.Value;
+        AssertValidTransition(CurrentState == State.RunningForward, "This operation can only be performed if the action is running forward.");
+        ForwardCompleteTime = LocalTime.Value;
         CurrentState = State.After;
         OnCompletedForward();
     }
@@ -202,16 +220,15 @@ public abstract class TimeInversibleAction : MonoBehaviour
         AssertValidTransition(
             CurrentState == State.Unknown || CurrentState == State.After,
             "This operation can only be performed if the action never started, or its local time is after its last end time.");
-        EndTime = LocalTime.Value;
-        EntryTime = LocalTime.Value;
-        CurrentState = State.Running;
+        ForwardCompleteTime = LocalTime.Value;
+        CurrentState = State.RunningBackwards;
         OnStartedBackwards();
     }
 
     protected void CompleteBackwards()
     {
-        AssertValidTransition(CurrentState == State.Running, "This operation can only be performed if the action is running.");
-        StartTime = LocalTime.Value;
+        AssertValidTransition(CurrentState == State.RunningBackwards, "This operation can only be performed if the action is running backwards.");
+        ForwardStartTime = LocalTime.Value;
         CurrentState = State.Before;
         OnCompletedBackwards();
     }
@@ -221,7 +238,8 @@ public abstract class TimeInversibleAction : MonoBehaviour
         if (!isValid)
         {
             throw new InvalidOperationException(
-                errorMessage + $"\nCurrent state = {CurrentState}, new local time = {LocalTime.Value}, last start time = {StartTime}, last complete time = {EndTime}.");
+                errorMessage + $"\nCurrent state = {CurrentState}, new local time = {LocalTime.Value}, " +
+                $"forward start time = {ForwardCompleteTime}, forward complete time = {ForwardCompleteTime}.");
         }
     }
 }
