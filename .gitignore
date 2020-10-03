@@ -1,5 +1,20 @@
-Temp
-.vs
-Library/
-obj/
-ProjectSettings/ProjectVersion.txt
+
+*.sln
+*.userprefs
+*.blend1
+*.blend2
+*.unityproj
+*.csproj
+*.pidb
+~*.docx
+~$*
+.~lock.*
+
+*.icloud
+.vs/
+
+# Unity things that should not be versioned
+/Permis de voyage/Library/
+/Permis de voyage/Temp/
+/Permis de voyage/obj/
+/Permis de voyage/ProjectSettings/ProjectVersion\.txt
