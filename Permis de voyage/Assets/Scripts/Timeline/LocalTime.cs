@@ -37,4 +37,9 @@ public class LocalTime: MonoBehaviour
     {
         value += DeltaTime;
     }
+
+    public override string ToString()
+    {
+        return $"[Local time: {Value} (speed: {RelativeSpeed}, delta: {DeltaTime})]";
+    }
 }

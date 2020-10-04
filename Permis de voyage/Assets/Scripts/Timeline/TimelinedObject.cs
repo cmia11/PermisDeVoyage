@@ -37,8 +37,8 @@ public class TimelinedObject : MonoBehaviour
     private GameObject actionsRoot;
     private static readonly string actionsRootName = "Actions";
 
-    private Vector3 lastTargetPosition;
-    private Quaternion lastTargetOrientation;
+    private Vector2 lastTargetPosition;
+    private float lastTargetAngle;
 
     /// <summary>
     /// Each registered action is given a private GameObject where it can store its stuff, and make it easier to clean.
@@ -71,11 +71,14 @@ public class TimelinedObject : MonoBehaviour
 
     protected virtual void Update()
     {
+        // Hardcoded stuff for the win
+        float positionSqrThreshold = 0.05f;
+        float angleThreshold = 2;
         IsMoving = (
-            lastTargetPosition != transform.position ||
-            lastTargetOrientation != transform.rotation);
+            lastTargetPosition - (Vector2) transform.position).sqrMagnitude > positionSqrThreshold ||
+            Mathf.Abs(lastTargetAngle - transform.rotation.eulerAngles.z) > angleThreshold;
         lastTargetPosition = transform.position;
-        lastTargetOrientation = transform.rotation;
+        lastTargetAngle = transform.rotation.eulerAngles.z;
     }
 
     /// <summary>

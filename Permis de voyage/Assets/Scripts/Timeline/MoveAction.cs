@@ -8,14 +8,14 @@ public class MoveAction : TimeInversibleAction
     private class HistoryDataPoint
     {
         public float Time { get; }
-        public Vector3 Position { get; }
-        public Quaternion Rotation { get; }
+        public Vector2 Position { get; }
+        public float Angle { get; }
 
-        public HistoryDataPoint(float time, Vector3 position, Quaternion rotation)
+        public HistoryDataPoint(float time, Vector2 position, float angle)
         {
             Time = time;
             Position = position;
-            Rotation = rotation;
+            Angle = angle;
         }
 
         public static HistoryDataPoint Lerp(HistoryDataPoint p1, HistoryDataPoint p2, float ratio)
@@ -25,7 +25,7 @@ public class MoveAction : TimeInversibleAction
             return new HistoryDataPoint(
                 (1 - ratio) * p1.Time + ratio * p2.Time,
                 Vector3.Lerp(p1.Position, p2.Position, ratio),
-                Quaternion.Lerp(p1.Rotation, p2.Rotation, ratio)
+                (1 - ratio) * p1.Angle + ratio * p2.Angle
             );
         }
     }
@@ -57,6 +57,11 @@ public class MoveAction : TimeInversibleAction
     {
         get
         {
+            if (GetTargetRigidbody() == null)
+            {
+                // Can't apply to an object that does not have a rigidbody
+                return false;
+            }
             if (Owner.Actions.Any(a => a.CurrentState == State.RunningBackwards))
             {
                 // Forward moves cannot interrupt recorded backward moves by design.
@@ -75,6 +80,11 @@ public class MoveAction : TimeInversibleAction
     {
         get
         {
+            if (GetTargetRigidbody() == null)
+            {
+                // Can't apply to an object that does not have a rigidbody
+                return false;
+            }
             if (Owner.Actions.Any(a => a.CurrentState == State.RunningBackwards))
             {
                 // We cannot start if the owner object is already moving backwards since we would compete with another action.
@@ -120,6 +130,7 @@ public class MoveAction : TimeInversibleAction
     private Vector3 ownerVelocity;
     private float lastOwnerAngle;
     private float ownerAngularVelocity;
+    private RigidbodyType2D originalRBType;
 
     /// <summary>
     /// This starts recording the moves of the action owner, driven by the Unity physics.
@@ -151,6 +162,11 @@ public class MoveAction : TimeInversibleAction
 
     protected override void OnCompletedBackwards()
     {
+        // Move actions are supposed to be created when the thing starts moving.
+        // So it goes back to zero speed when we're done. This is also a way to prevent
+        // new spurious MoveActions to be spawned because we left the owner moving just a little bit.
+        ownerVelocity = Vector2.zero;
+        ownerAngularVelocity = 0;
         IsPlayingBack = false;
     }
 
@@ -195,7 +211,7 @@ public class MoveAction : TimeInversibleAction
             }
             else
             {
-                // Exit condition = we have played back the whole history
+                // Exit condition = we have played back the whole history.
                 isDone = true;
             }
         }
@@ -212,22 +228,152 @@ public class MoveAction : TimeInversibleAction
 
     private void ConfigurePlaybackPhysics()
     {
-        throw new NotImplementedException();
+        Rigidbody2D targetRB = GetTargetRigidbody();
+        originalRBType = targetRB.bodyType;
+        targetRB.bodyType = RigidbodyType2D.Kinematic;
     }
 
     private void ConfigureNormalPhysics()
     {
-        throw new NotImplementedException();
+        Rigidbody2D targetRB = GetTargetRigidbody();
+        targetRB.bodyType = originalRBType;
+        if (!targetRB.isKinematic)
+        {
+            // Apply speeds to the thing as it goes back to the realm of normal physics
+            targetRB.velocity = ownerVelocity;
+            targetRB.angularVelocity = ownerAngularVelocity;
+        }
+    }
+
+    private Rigidbody2D GetTargetRigidbody()
+    {
+        return Owner.GetComponent<Rigidbody2D>();
     }
 
     private void RecordHistory()
     {
-        throw new NotImplementedException();
+        Transform ownerTransform = Owner.transform;
+        var historyPoint = new HistoryDataPoint(
+            LocalTime.Value,
+            ownerTransform.position,
+            ownerTransform.rotation.eulerAngles.z
+        );
+        if (history.Count < 2)
+        {
+            // We added a first point when the recording started. Add a second one.
+            history.Add(historyPoint);
+        }
+        else
+        {
+            HistoryDataPoint point_n_1 = history[history.Count - 1];
+            HistoryDataPoint point_n_2 = history[history.Count - 1];
+            if (Mathf.Abs(point_n_1.Time - point_n_2.Time) >= TimeResolution)
+            {
+                // There is enough gap between the last two measures ; add one more.
+                history.Add(historyPoint);
+            }
+            else
+            {
+                // The last two points were very close; replace the most recent one.
+                history[history.Count - 1] = historyPoint;
+            }
+        }
     }
 
     private void DoPlayback()
     {
-        throw new NotImplementedException();
+        int nPoints = history.Count;
+        int ivMinIndex = 0;
+        int ivMaxIndex = nPoints -2; // -1 because indices; -1 because there is one less intervals than points.
+
+        if (ivMaxIndex >= 0)
+        {
+            float timeNow = LocalTime.Value;
+            int? properIntervalIndex = null;
+            while (true)
+            {
+                int pivotIndex = (ivMinIndex + ivMaxIndex) / 2;
+                HistoryDataPoint pivotBound1 = history[ivMinIndex];
+                HistoryDataPoint pivotBound2 = history[ivMinIndex + 1];
+
+                if (IsCurrentInterval(pivotBound1, pivotBound2))
+                {
+                    // Check the pivot interval. If it matches, exit the loop
+                    properIntervalIndex = pivotIndex;
+                    break;
+                }
+                else if (ivMinIndex != ivMaxIndex)
+                {
+                    // There are more intervals to explore, let's split the search space either on the left or right
+                    bool checkLeft = (TimeDirectionSign * (timeNow - pivotBound1.Time) > 0);
+                    if (checkLeft && ivMinIndex == pivotIndex || !checkLeft && ivMaxIndex == pivotIndex)
+                    {
+                        Debug.LogError($"Failed to locate the interval for local time {timeNow} in the history.");
+                        break;
+                    }
+                    else
+                    {
+                        if (checkLeft)
+                            ivMaxIndex = pivotIndex - 1;
+                        else
+                            ivMinIndex = pivotIndex + 1;
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Unable to locate the interval where a value should be taken in the history.");
+                    break;
+                }
+            }
+
+            if (properIntervalIndex.HasValue)
+            {
+                // Get the position and rotation to apply
+                HistoryDataPoint p1 = history[properIntervalIndex.Value];
+                HistoryDataPoint p2 = history[properIntervalIndex.Value + 1];
+                float intervalRatio = GetUnboundedRatioInInterval(p1, p2);
+                HistoryDataPoint interpolation = HistoryDataPoint.Lerp(p1, p2, intervalRatio);
+
+                // Apply these to the object
+                Transform ownerTransform = Owner.transform;
+                ownerTransform.position = interpolation.Position;
+                ownerTransform.rotation = Quaternion.Euler(0,0,interpolation.Angle);
+            }
+        }
+        else
+        {
+            Debug.LogError(
+                "Unable to playback an (almost) empty history. This action should have maybe be completed by now.\n" +
+                $"  * History times = [{history.Aggregate("", (s, p) => (string.IsNullOrEmpty(s) ? s : s + ", ") + p.Time.ToString())}], " +
+                $"time now = {LocalTime}.");
+        }
+    }
+
+    private bool IsCurrentInterval(HistoryDataPoint p1, HistoryDataPoint p2)
+    {
+        float timeNow = LocalTime.Value;
+        return (p1.Time - timeNow) * (p2.Time - timeNow) <= 0;
+    }
+
+    /// <summary>
+    /// Ratio of the current time in the specified interval. May go beyond [0, 1]
+    /// </summary>
+    private float GetUnboundedRatioInInterval(HistoryDataPoint p1, HistoryDataPoint p2)
+    {
+        float p1Time = p1.Time;
+        float p2Time = p2.Time;
+        if (p1Time != p2Time) {
+            return Mathf.Sign(p2Time - p2Time) * (LocalTime.Value - p1Time) / (p2Time - p1Time);
+        }
+        else if (LocalTime.Value == p1Time) {
+            // Anything between 0 and 1 would do.
+            return 0.5f;
+        }
+        else
+        {
+            // What is the ratio if we're outside of a zero-width interval !?
+            throw new ArgumentException("Invalid ratio computation using a zero-width interval");
+        }
     }
 
 }
