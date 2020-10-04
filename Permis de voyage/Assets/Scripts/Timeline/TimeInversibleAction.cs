@@ -42,6 +42,16 @@ public abstract class TimeInversibleAction : MonoBehaviour
     private TimelinedObject owner;
 
     /// <summary>
+    /// Indicates whever this action may start in its "normal" direction.
+    /// </summary>
+    public virtual bool CanStartForward => true;
+
+    /// <summary>
+    /// Indicates whever this action may start in its "reversed" direction.
+    /// </summary>
+    public virtual bool CanStartBackwards => true;
+
+    /// <summary>
     /// The local time at which this action started forward (or completed backwards).
     /// It is defined iff StartForward() has been called at least once.
     /// It may be lower than EndTime if the action started when the local time speed was negative.
@@ -106,7 +116,7 @@ public abstract class TimeInversibleAction : MonoBehaviour
     {
         // In case we add an action on the same GameObject as the TimelinedObject it belongs to, it will
         // share its local time automatically.
-        localTime = localTime ?? GetComponent<LocalTime>();
+        localTime = localTime  != null ? localTime : GetComponent<LocalTime>();
     }
 
     protected virtual void Update()
@@ -194,17 +204,22 @@ public abstract class TimeInversibleAction : MonoBehaviour
     {
         if (TimeDirectionSign.Value * (LocalTime.Value - ForwardStartTime.Value) >= 0)
         {
-            StartForward();
-            if (IsIntantaneous)
+            if (CanStartForward)
             {
-                CompleteForward();
+                StartForward();
+                if (IsIntantaneous)
+                {
+                    CompleteForward();
+                }
+                else
+                {
+                    bool isDone = OnMakingProgress();
+                    if (isDone)
+                        CompleteForward();
+                }
             }
             else
-            {
-                bool isDone = OnMakingProgress();
-                if (isDone)
-                    CompleteForward();
-            }
+                Owner.SignalActionStartFailed(this);
         }
     }
 
@@ -225,22 +240,28 @@ public abstract class TimeInversibleAction : MonoBehaviour
     {
         if (TimeDirectionSign.Value * (ForwardCompleteTime.Value - LocalTime.Value) >= 0)
         {
-            StartBackwards();
-            if (IsIntantaneous)
+            if (CanStartBackwards)
             {
-                CompleteBackwards();
+                StartBackwards();
+                if (IsIntantaneous)
+                {
+                    CompleteBackwards();
+                }
+                else
+                {
+                    bool isDone = OnMakingProgress();
+                    if (isDone)
+                        CompleteBackwards();
+                }
             }
             else
-            {
-                bool isDone = OnMakingProgress();
-                if (isDone)
-                    CompleteBackwards();
-            }
+                Owner.SignalActionStartFailed(this);
         }
     }
 
     protected void StartForward()
     {
+        AssertValidTransition(CanStartForward, "This action cannot start at the moment.");
         AssertValidTransition(
             CurrentState == State.Unknown || CurrentState == State.Before,
             "This operation can only be performed if the action never started, or its local time is before its last start time.");
@@ -260,6 +281,7 @@ public abstract class TimeInversibleAction : MonoBehaviour
 
     protected void StartBackwards()
     {
+        AssertValidTransition(CanStartBackwards, "This action cannot start in reverse mode at the moment.");
         AssertValidTransition(
             CurrentState == State.Unknown || CurrentState == State.After,
             "This operation can only be performed if the action never started, or its local time is after its last end time.");
@@ -281,8 +303,10 @@ public abstract class TimeInversibleAction : MonoBehaviour
         if (!isValid)
         {
             throw new InvalidOperationException(
-                errorMessage + $"\nCurrent state = {CurrentState}, new local time = {LocalTime.Value}, " +
-                $"forward start time = {ForwardCompleteTime}, forward complete time = {ForwardCompleteTime}.");
+                errorMessage +
+                $"\n  * Current state = {CurrentState}\n  * current local time = {LocalTime.Value}\n" +
+                $"  * forward start time = {ForwardCompleteTime}\n  * forward complete time = {ForwardCompleteTime}\n" +
+                $"  * CanStartForward = {CanStartForward}\n  * CanStartBackwards = {CanStartBackwards}");
         }
     }
 }

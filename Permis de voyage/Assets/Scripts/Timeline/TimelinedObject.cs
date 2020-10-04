@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using UnityEngine;
+using System.Linq;
 
 public class TimelinedObject : MonoBehaviour
 {
@@ -26,8 +27,7 @@ public class TimelinedObject : MonoBehaviour
     /// <summary>
     /// The set of actions which this object has taken.
     /// </summary>
-    public IList<TimeInversibleAction> Actions => actions.ToArray();
-    private List<TimeInversibleAction> actions = null;
+    public IList<TimeInversibleAction> Actions => actionsStorage.Select(t => t.Item1).ToArray();
 
     /// <summary>
     /// Tests whever this object is moving.
@@ -40,11 +40,18 @@ public class TimelinedObject : MonoBehaviour
     private Vector3 lastTargetPosition;
     private Quaternion lastTargetOrientation;
 
+    /// <summary>
+    /// Each registered action is given a private GameObject where it can store its stuff, and make it easier to clean.
+    /// This field remembers which goes where.
+    /// </summary>
+    private List<Tuple<TimeInversibleAction, GameObject>> actionsStorage = new List<Tuple<TimeInversibleAction, GameObject>>();
+    int nextActionID = 0;
+
     protected virtual void Awake()
     {
         // In case we add an action on the same GameObject as the TimelinedObject it belongs to, it will
         // share its local time automatically.
-        localTime  = localTime ?? GetComponent<LocalTime>();
+        localTime = localTime != null ? localTime : GetComponent<LocalTime>();
         actionsRoot = transform.Find(actionsRootName) != null ? transform.Find(actionsRootName).gameObject : null;
         if (actionsRoot == null) {
             actionsRoot = new GameObject(actionsRootName);
@@ -77,11 +84,37 @@ public class TimelinedObject : MonoBehaviour
     /// </summary>
     public TAction CreateAction<TAction>() where TAction: TimeInversibleAction
     {
-        var newAction = actionsRoot.AddComponent<TAction>();
+
+        int newActionID = nextActionID++;
+        var actionRoot = new GameObject(newActionID.ToString());
+        var newAction = actionRoot.AddComponent<TAction>();
         newAction.LocalTime = LocalTime;
         newAction.Owner = this;
-        actions.Add(newAction);
+
+        actionRoot.transform.SetParent(actionsRoot.transform);
+        actionsStorage.Add( new Tuple<TimeInversibleAction, GameObject>(newAction, actionRoot));
+
         return newAction;
     }
 
+    public void SignalActionStartFailed(TimeInversibleAction action)
+    {
+        Debug.Log($"The following action could not start and will be discarded: {action}");
+        DestroyAction(action);
+    }
+
+    private void DestroyAction(TimeInversibleAction action)
+    {
+        int storageIndex = actionsStorage.FindIndex(t => t.Item1 == action);
+        if (storageIndex >= 0)
+        {
+            actionsStorage.RemoveAt(storageIndex);
+            GameObject actionObject = actionsStorage[storageIndex].Item2;
+            Destroy(actionObject);
+        }
+        else
+        {
+            Debug.LogError($"The following action was not destroyed since it's not one of this object's actions: {action}");
+        }
+    }
 }
