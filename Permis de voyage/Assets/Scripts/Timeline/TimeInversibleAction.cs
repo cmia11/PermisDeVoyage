@@ -12,16 +12,34 @@ public abstract class TimeInversibleAction : MonoBehaviour
     {
         get
         {
-            return timeline ?? throw new NullReferenceException(
+            return localTime != null ? localTime : throw new NullReferenceException(
                 $"The {nameof(LocalTime)} property of this object should have been set before using it.");
         }
         set
         {
-            timeline = value ?? throw new ArgumentNullException();
+            localTime = value != null ? value : throw new ArgumentNullException();
         }
     }
     [SerializeField]
-    private LocalTime timeline;
+    private LocalTime localTime;
+
+    /// <summary>
+    /// The owner of this action.
+    /// </summary>
+    public TimelinedObject Owner
+    {
+        get
+        {
+            return owner != null ? owner : throw new NullReferenceException(
+                $"The {nameof(Owner)} property of this object should have been set before using it.");
+        }
+        set
+        {
+            owner = value != null ? value : throw new ArgumentNullException();
+        }
+    }
+    [SerializeField]
+    private TimelinedObject owner;
 
     /// <summary>
     /// The local time at which this action started forward (or completed backwards).
@@ -88,7 +106,7 @@ public abstract class TimeInversibleAction : MonoBehaviour
     {
         // In case we add an action on the same GameObject as the TimelinedObject it belongs to, it will
         // share its local time automatically.
-        timeline = timeline ?? GetComponent<LocalTime>();
+        localTime = localTime ?? GetComponent<LocalTime>();
     }
 
     protected virtual void Update()
@@ -110,6 +128,31 @@ public abstract class TimeInversibleAction : MonoBehaviour
             default:
                 throw new NotImplementedException($"Unsupported state {CurrentState}");
         }
+    }
+
+    /// <summary>
+    /// Indicates whever this action is active at the specified point in its local time or
+    /// was active when it crossed this point in time last time.
+    /// </summary>
+    public bool? IsActiveAt(float localTime)
+    {
+        bool? res = null;
+        switch (CurrentState)
+        {
+            case State.RunningForward:
+                float maxTime = (ForwardCompleteTime > LocalTime.Value) ? ForwardCompleteTime.Value : LocalTime.Value;
+                res = ForwardStartTime.Value <= localTime && localTime <= maxTime;
+                break;
+            case State.RunningBackwards:
+                float minTime = (ForwardStartTime < LocalTime.Value) ? ForwardStartTime.Value : LocalTime.Value;
+                res = minTime <= localTime && localTime <= ForwardCompleteTime.Value;
+                break;
+            default:
+                if (ForwardCompleteTime.HasValue && ForwardCompleteTime.HasValue)
+                    res = ForwardStartTime.Value <= localTime && localTime <= ForwardCompleteTime.Value;
+                break;
+        }
+        return res;
     }
 
     #region "Methods to override in children"
