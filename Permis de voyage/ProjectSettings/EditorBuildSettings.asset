@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MenuDebut.unity
     guid: 1508f5400714c9a438c17735b47fa4e6
   - enabled: 1
+    path: Assets/Scenes/FirstBriefing.unity
+    guid: 1123e9b4a64042c49a57503212a28a01
+  - enabled: 1
     path: Assets/Scenes/SceneDebutTest.unity
     guid: 8deab97592a53f04991087090e7c1a18
   m_configObjects: {}
