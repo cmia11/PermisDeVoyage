@@ -62,7 +62,7 @@ public class MoveAction : TimeInversibleAction
                 // Can't apply to an object that does not have a rigidbody
                 return false;
             }
-            if (Owner.Actions.Any(a => a.CurrentState == State.RunningBackwards))
+            else if (Owner.Actions.Any(a => a.CurrentState == State.RunningBackwards))
             {
                 // Forward moves cannot interrupt recorded backward moves by design.
                 return false;
@@ -85,7 +85,7 @@ public class MoveAction : TimeInversibleAction
                 // Can't apply to an object that does not have a rigidbody
                 return false;
             }
-            if (Owner.Actions.Any(a => a.CurrentState == State.RunningBackwards))
+            else if (Owner.Actions.Any(a => a.CurrentState == State.RunningBackwards))
             {
                 // We cannot start if the owner object is already moving backwards since we would compete with another action.
                 return false;
@@ -99,24 +99,6 @@ public class MoveAction : TimeInversibleAction
         }
     }
 
-    // Are we controling the target object 
-    private bool IsPlayingBack
-    {
-        get => isPlayingBack;
-        set
-        {
-            if (isPlayingBack != value)
-            {
-                isPlayingBack = value;
-                if (isPlayingBack)
-                    ConfigurePlaybackPhysics();
-                else
-                    ConfigureNormalPhysics();
-            }
-        }
-    }
-    private bool isPlayingBack = false;
-
     /// <summary>
     /// List of data point collected during the forward execution of the action.
     /// They are added to this list in the they are first collected.
@@ -126,9 +108,9 @@ public class MoveAction : TimeInversibleAction
     private List<HistoryDataPoint> history = new List<HistoryDataPoint>();
 
     // Movement parameters in the Unity reference time
-    private Vector3 lastOwnerPosition;
+    private Vector3? lastOwnerPosition;
     private Vector3 ownerVelocity;
-    private float lastOwnerAngle;
+    private float? lastOwnerAngle;
     private float ownerAngularVelocity;
     private RigidbodyType2D originalRBType;
 
@@ -150,14 +132,13 @@ public class MoveAction : TimeInversibleAction
     protected override void OnStartedForward()
     {
         Transform ownerTransform = Owner.transform;
-        lastOwnerPosition = ownerTransform.position;
-        lastOwnerAngle = ownerTransform.localRotation.eulerAngles.z;
+        ResetSpeedMeasure();
     }
 
     protected override void OnStartedBackwards()
     {
         OnStartedForward();
-        IsPlayingBack = true;
+        SetIsPlayingBack(true);
     }
 
     protected override void OnCompletedBackwards()
@@ -167,57 +148,68 @@ public class MoveAction : TimeInversibleAction
         // new spurious MoveActions to be spawned because we left the owner moving just a little bit.
         ownerVelocity = Vector2.zero;
         ownerAngularVelocity = 0;
-        IsPlayingBack = false;
+        SetIsPlayingBack(false);
+    }
+
+    private void ResetSpeedMeasure()
+    {
+        lastOwnerPosition = null;
+        ownerVelocity = Vector2.zero;
+        lastOwnerAngle = null;
+        ownerAngularVelocity = 0;
     }
 
     protected override bool OnMakingProgress()
     {
         bool isDone = false;
-
-        // Compute the owner new speed and angular speed
         Transform ownerTransform = Owner.transform;
-        if (LocalTime.DeltaTime > 0)
-        {
-            ownerVelocity = (ownerTransform.position - lastOwnerPosition) / LocalTime.DeltaTime;
-            ownerAngularVelocity = (ownerTransform.localRotation.eulerAngles.z - lastOwnerAngle) / LocalTime.DeltaTime;
-        }
-        else
-        {
-            ownerVelocity = Vector3.zero;
-            ownerAngularVelocity = 0;
-        }
 
-        // Compute whever we're recording points or playing back the history.
-        float actionProgressSign = (TimeDirectionSign.Value * LocalTime.DeltaTime);
-        if (actionProgressSign > 0)
+        if (lastOwnerPosition.HasValue && lastOwnerAngle.HasValue)
         {
-            IsPlayingBack = false;
-            if (ownerVelocity != Vector3.zero || ownerAngularVelocity != 0)
+            // Compute the owner new speed and angular speed
+            if (LocalTime.DeltaTime > 0)
             {
-                RecordHistory();
+                ownerVelocity = (ownerTransform.position - lastOwnerPosition.Value) / LocalTime.DeltaTime;
+                ownerAngularVelocity = (ownerTransform.localRotation.eulerAngles.z - lastOwnerAngle.Value) / LocalTime.DeltaTime;
             }
             else
             {
-                // Exit condition = we have stopped
-                isDone = true;
+                ownerVelocity = Vector3.zero;
+                ownerAngularVelocity = 0;
             }
-        }
-        else if (actionProgressSign < 0)
-        {
-            IsPlayingBack = true;
-            if ((ForwardStartTime.Value - LocalTime.Value) * TimeDirectionSign < 0)
+
+            // Compute whever we're recording points or playing back the history.
+            float actionProgressSign = (TimeDirectionSign.Value * LocalTime.DeltaTime);
+            if (actionProgressSign > 0)
             {
-                DoPlayback();
+                SetIsPlayingBack(false);
+                if (ownerVelocity != Vector3.zero || ownerAngularVelocity != 0)
+                {
+                    RecordHistory();
+                }
+                else
+                {
+                    // Exit condition = we have stopped
+                    isDone = true;
+                }
+            }
+            else if (actionProgressSign < 0)
+            {
+                SetIsPlayingBack(true);
+                if ((ForwardStartTime.Value - LocalTime.Value) * TimeDirectionSign < 0)
+                {
+                    DoPlayback();
+                }
+                else
+                {
+                    // Exit condition = we have played back the whole history.
+                    isDone = true;
+                }
             }
             else
             {
-                // Exit condition = we have played back the whole history.
-                isDone = true;
+                // The local time is frozen: nothing happens this frame.
             }
-        }
-        else
-        {
-            // The local time is frozen: nothing happens this frame.
         }
 
         // Update for next frame
@@ -249,6 +241,22 @@ public class MoveAction : TimeInversibleAction
     {
         return Owner.GetComponent<Rigidbody2D>();
     }
+
+    /// <summary>
+    /// Are we controling the target object for a backwards move?
+    /// </summary>
+    private void SetIsPlayingBack(bool value)
+    {
+        if (isPlayingBack != value)
+        {
+            isPlayingBack = value;
+            if (isPlayingBack)
+                ConfigurePlaybackPhysics();
+            else
+                ConfigureNormalPhysics();
+        }
+    }
+    private bool isPlayingBack = false;
 
     private void RecordHistory()
     {

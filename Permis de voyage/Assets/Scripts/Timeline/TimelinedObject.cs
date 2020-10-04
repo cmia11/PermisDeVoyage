@@ -87,7 +87,6 @@ public class TimelinedObject : MonoBehaviour
     /// </summary>
     public TAction CreateAction<TAction>() where TAction: TimeInversibleAction
     {
-
         int newActionID = nextActionID++;
         var actionRoot = new GameObject(newActionID.ToString());
         var newAction = actionRoot.AddComponent<TAction>();

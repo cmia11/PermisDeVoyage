@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using System.Collections;
-using UnityEngine.UI;
-//[RequireComponent(typeof(LocalTime))]
+
 public class InterfaceTimeLine : MonoBehaviour
 {
     public TextMeshProUGUI horloge;

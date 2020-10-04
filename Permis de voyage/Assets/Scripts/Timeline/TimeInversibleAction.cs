@@ -6,6 +6,12 @@ using UnityEngine;
 public abstract class TimeInversibleAction : MonoBehaviour
 {
     /// <summary>
+    /// Identifier of this task
+    /// </summary>
+    public int ID { get; private set; }
+    private static int nextID = 0;
+
+    /// <summary>
     /// The local time which this action uses to update its state.
     /// </summary>
     public LocalTime LocalTime
@@ -114,6 +120,7 @@ public abstract class TimeInversibleAction : MonoBehaviour
 
     protected virtual void Awake()
     {
+        ID = nextID++;
         // In case we add an action on the same GameObject as the TimelinedObject it belongs to, it will
         // share its local time automatically.
         localTime = localTime  != null ? localTime : GetComponent<LocalTime>();
@@ -150,12 +157,11 @@ public abstract class TimeInversibleAction : MonoBehaviour
         switch (CurrentState)
         {
             case State.RunningForward:
-                float maxTime = (ForwardCompleteTime > LocalTime.Value) ? ForwardCompleteTime.Value : LocalTime.Value;
-                res = ForwardStartTime.Value <= localTime && localTime <= maxTime;
+                // Active if the looked up time if between the current time and the start time.
+                res = (localTime - ForwardStartTime.Value) * (localTime - LocalTime.Value) <= 0;
                 break;
             case State.RunningBackwards:
-                float minTime = (ForwardStartTime < LocalTime.Value) ? ForwardStartTime.Value : LocalTime.Value;
-                res = minTime <= localTime && localTime <= ForwardCompleteTime.Value;
+                res = (localTime - ForwardCompleteTime.Value) * (localTime - LocalTime.Value) <= 0;
                 break;
             default:
                 if (ForwardCompleteTime.HasValue && ForwardCompleteTime.HasValue)
@@ -308,5 +314,10 @@ public abstract class TimeInversibleAction : MonoBehaviour
                 $"  * forward start time = {ForwardCompleteTime}\n  * forward complete time = {ForwardCompleteTime}\n" +
                 $"  * CanStartForward = {CanStartForward}\n  * CanStartBackwards = {CanStartBackwards}");
         }
+    }
+
+    public override string ToString()
+    {
+        return $"[Action type: {GetType().Name}, ID: {ID}]";
     }
 }
