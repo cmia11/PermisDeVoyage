@@ -19,6 +19,7 @@ public class SetColorAction : TimeInversibleAction
 
     private Color currentColor1 = Color.black;
     private Color currentColor2 = Color.red;
+    private bool hasStarted = false;
 
 
     protected override void Update()
@@ -26,9 +27,10 @@ public class SetColorAction : TimeInversibleAction
         base.Update();
 
         // Action auto-start
-        if (Time.time <= globalStartTime && Time.time + Time.deltaTime > globalStartTime)
+        if (Time.time > globalStartTime && !hasStarted)
         {
             Debug.Log("Starting action");
+            hasStarted = true;
             StartForward();
         }
     }
@@ -55,7 +57,7 @@ public class SetColorAction : TimeInversibleAction
     protected override bool OnMakingProgress()
     {
         // If we're in the Running state, we must have localTimeDuration != 0 and EntryTime defined.
-        float ratio = localTimeDuration > 0 ? Mathf.Abs(LocalTime.Value - EntryTime.Value) / localTimeDuration : 1.0f;
+        float ratio = localTimeDuration > 0 ? SignedTimeFromStart.Value / localTimeDuration : 1.0f;
         ApplyColor(Color.Lerp(currentColor1, currentColor2, ratio));
         return ratio >= 1.0f;
     }
