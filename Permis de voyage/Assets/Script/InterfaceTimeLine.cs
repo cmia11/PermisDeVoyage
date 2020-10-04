@@ -2,16 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-//[RequireComponent(typeof(LocalTime))]
+using System.Collections;
+using UnityEngine.UI;
+[RequireComponent(typeof(LocalTime))]
 public class InterfaceTimeLine : MonoBehaviour
 {
-    public LocalTime localtime;
+    private float localTime;
     private AudioSource audiosource;
+    public bool isGameOver = false;
+   // public GameObject Text;
     //public float value;
-    public TextMeshProUGUI horloge;
-    //GameObject gameObject = this;
+    public TextMeshPro horloge;
+
     void Start()
     {
+        horloge = GetComponent<TextMeshPro>();
+        localTime = GetComponent<LocalTime>().Value;
         audiosource = GetComponent<AudioSource>();
         // value = gameObject.GetComponent<Value>;
         audiosource.Play();
@@ -20,6 +26,7 @@ public class InterfaceTimeLine : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        horloge.text = "bonjour";
+        Debug.Log(localTime);
     }
 }
