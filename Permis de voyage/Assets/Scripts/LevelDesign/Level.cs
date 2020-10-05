@@ -63,7 +63,7 @@ public class Level : MonoBehaviour
     {
         if (HasReachedFarSide && DefaultTime.Value <= 0)
         {
-            Game.Instance.LoseLevel(this);
+            Game.Instance.LoseLevel();
         }
     }
 
@@ -72,6 +72,6 @@ public class Level : MonoBehaviour
     /// </summary>
     public void OnReplayLevelClick()
     {
-        Game.Instance.RestartLevel();
+        Game.Instance.ReloadCurrentScene();
     }
 }

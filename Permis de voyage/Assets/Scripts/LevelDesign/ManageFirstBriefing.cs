@@ -16,11 +16,11 @@ public class ManageFirstBriefing : MonoBehaviour
 
     public void ReStartBrief()
     {
-        Game.Instance.GoToBriefing();
+        Game.Instance.ReloadCurrentScene();
     }
 
     public void StartLevel()
     {
-        Game.Instance.GoToFirstLevel();
+        Game.Instance.WinLevel();
     }
 }
