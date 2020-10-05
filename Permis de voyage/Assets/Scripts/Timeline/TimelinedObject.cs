@@ -71,9 +71,9 @@ private List<Tuple<TimeInversibleAction, GameObject>> actionsStorage = new List<
     {
         if (localTime == null)
         {
-            // There may be a global LocalTime instance or something like this which should be given to the object.
-            // This design question has not yet been solved, but in then end this LocalTime will have to make its way here.
-            Debug.LogWarning("The local time of this object has not been set before its Start. This is not gonna end well!");
+            localTime = GameManager.Instance.DefaultTime;
+            if (localTime == null)
+                Debug.LogWarning("The local time of this object has not been set at the end of Start. This is not gonna end well!");
         }
     }
 
