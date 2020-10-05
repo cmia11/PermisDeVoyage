@@ -110,6 +110,11 @@ public class Game : MonoBehaviour
             GoToTitleScene();
         }
     }
+
+    public void LoseLevel(Level level)
+    {
+        SceneManager.LoadScene(levelSceneIndices[currentLevelIndex.Value]);
+    }
 }
 
 

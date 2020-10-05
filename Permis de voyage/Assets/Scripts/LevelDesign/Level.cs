@@ -59,5 +59,11 @@ public class Level : MonoBehaviour
         DefaultTime.RelativeSpeed = 1.0f;
     }
 
-
+    protected virtual void Update()
+    {
+        if (HasReachedFarSide && DefaultTime.Value <= 0)
+        {
+            Game.Instance.LoseLevel(this);
+        }
+    }
 }
