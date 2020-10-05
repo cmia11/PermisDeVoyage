@@ -257,6 +257,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e257198c37bea8d4b9152974ac79f16e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  settleTime: 0.5
+  singleActivation: 0
 --- !u!114 &91682087
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -296,6 +298,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b8ddefd710a834488b7bacb4bedcdc3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _loggingLevel: 2
   localTime: {fileID: 91682088}
 --- !u!1 &301756431
 GameObject:

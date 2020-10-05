@@ -122,9 +122,9 @@ public abstract class TimeInversibleAction : VerboseComponent
         private set
         {
             if (currentState != value)
-                Log($"Changing state: {currentState} -> {value}");
+                Log($"Action {ID} changing state: {currentState} -> {value}");
             else
-                Log($"Remaining in state {currentState}");
+                Log($"Action {ID} remaining in state {currentState}");
             currentState = value;
         }
     }
