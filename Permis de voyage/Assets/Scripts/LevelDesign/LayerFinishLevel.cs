@@ -2,30 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LayerFinishLevel : MonoBehaviour
+public class LayerFinishLevel : VerboseComponent
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.name == "Player" && GameManager.Instance.DefaultTime.RelativeSpeed > 0)
+        if (other.name == "Player")
         {
-
-            Debug.Log("Start Phase 2 YOU HAVE CHANGED TIME");
-            GameManager.Instance.DefaultTime.RelativeSpeed = -1.0f;
-
+            Log("The player has reached the far side of the level.");
+            Level.Instance.HasReachedFarSide = true;
         }
-
     }
 
 }
