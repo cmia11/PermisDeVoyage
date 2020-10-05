@@ -133,7 +133,7 @@ GameObject:
   - component: {fileID: 120862970}
   - component: {fileID: 120862969}
   m_Layer: 5
-  m_Name: MainMenu
+  m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -177,7 +177,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: d4e9da545b324ec42854a3c61fa056b1, type: 3}
+  m_Sprite: {fileID: 21300000, guid: cde584a1e2e4420408d5291826abfec1, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -285,6 +285,7 @@ GameObject:
   - component: {fileID: 962718385}
   - component: {fileID: 962718387}
   - component: {fileID: 962718386}
+  - component: {fileID: 962718388}
   m_Layer: 5
   m_Name: MenuUI
   m_TagString: Untagged
@@ -385,7 +386,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f0b71cefaf98294296416fbcd872aa1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mouseClick: {fileID: 8300000, guid: 9793b7f09b4b0884f9bdedd9be2daa61, type: 3}
 --- !u!82 &962718386
 AudioSource:
   m_ObjectHideFlags: 0
@@ -490,6 +490,19 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 962718380}
   m_Enabled: 1
+--- !u!114 &962718388
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 962718380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6339e5fb2e2ff74d85d4cc430d5c09d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mouseClick: {fileID: 8300000, guid: 9793b7f09b4b0884f9bdedd9be2daa61, type: 3}
 --- !u!1 &1078836894
 GameObject:
   m_ObjectHideFlags: 0
@@ -735,12 +748,12 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 962718385}
-        m_MethodName: StartGame
+      - m_Target: {fileID: 2069766361}
+        m_MethodName: 
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_ObjectArgumentAssemblyTypeName: 
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
