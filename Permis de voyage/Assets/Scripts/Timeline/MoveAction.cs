@@ -123,7 +123,7 @@ public class MoveAction : TimeInversibleAction
             StartForward();
         else
         {
-            Debug.LogError("This operation cannot start, Its owner will be notified of the failure.");
+            LogError("This operation cannot start, Its owner will be notified of the failure.");
             Owner.SignalActionStartFailed(this);
         }
     }
@@ -251,13 +251,13 @@ public class MoveAction : TimeInversibleAction
             {
                 // There is enough gap between the last two measures ; add one more.
                 history.Add(historyPoint);
-                Debug.Log($"Recorded new point at index {history.Count - 1}: {historyPoint}");
+                LogDebug($"Recorded new point at index {history.Count - 1}: {historyPoint}");
             }
             else
             {
                 // The last two points were very close; replace the most recent one.
                 history[history.Count - 1] = historyPoint;
-                Debug.Log($"Updated index {history.Count - 1}: {historyPoint}");
+                LogDebug($"Updated index {history.Count - 1}: {historyPoint}");
             }
         }
     }
@@ -290,7 +290,7 @@ public class MoveAction : TimeInversibleAction
                     bool checkLeft = (TimeDirectionSign * (timeNow - pivotBound1.Time) < 0);
                     if (checkLeft && ivMinIndex == pivotIndex || !checkLeft && ivMaxIndex == pivotIndex)
                     {
-                        Debug.LogError($"Failed to locate the interval for local time {timeNow} in the history.");
+                        LogError($"Failed to locate the interval for local time {timeNow} in the history.");
                         break;
                     }
                     else
@@ -303,7 +303,7 @@ public class MoveAction : TimeInversibleAction
                 }
                 else
                 {
-                    Debug.LogError("Unable to locate the interval where a value should be taken in the history.");
+                    LogError("Unable to locate the interval where a value should be taken in the history.");
                     break;
                 }
             }
@@ -316,7 +316,7 @@ public class MoveAction : TimeInversibleAction
                 float intervalRatio = GetUnboundedRatioInInterval(p1, p2);
                 HistoryDataPoint interpolation = HistoryDataPoint.Lerp(p1, p2, intervalRatio);
 
-                Debug.Log($"Applying saved point: {interpolation}");
+                LogDebug($"Applying saved point: {interpolation}");
 
                 // Apply these to the object
                 Transform ownerTransform = Owner.transform;
@@ -330,7 +330,7 @@ public class MoveAction : TimeInversibleAction
         }
         else
         {
-            Debug.LogError(
+            LogError(
                 "Unable to playback an (almost) empty history. This action should have maybe be completed by now.\n" +
                 $"  * History times = [{history.Aggregate("", (s, p) => (string.IsNullOrEmpty(s) ? s : s + ", ") + p.Time.ToString())}], " +
                 $"time now = {LocalTime}.");

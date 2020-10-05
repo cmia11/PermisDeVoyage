@@ -4,7 +4,7 @@ using System;
 using UnityEngine;
 using System.Linq;
 
-public class TimelinedObject : MonoBehaviour
+public class TimelinedObject : VerboseComponent
 {
     /// <summary>
     /// The local time which this action uses to update its state.
@@ -73,7 +73,7 @@ private List<Tuple<TimeInversibleAction, GameObject>> actionsStorage = new List<
         {
             localTime = GameManager.Instance.DefaultTime;
             if (localTime == null)
-                Debug.LogWarning("The local time of this object has not been set at the end of Start. This is not gonna end well!");
+                LogWarning("The local time of this object has not been set at the end of Start. This is not gonna end well!");
         }
     }
 
@@ -109,6 +109,7 @@ private List<Tuple<TimeInversibleAction, GameObject>> actionsStorage = new List<
         var newAction = actionRoot.AddComponent<TAction>();
         actionRoot.name = newAction.ID.ToString();
         newAction.LocalTime = LocalTime;
+        newAction.LoggingLevel = LoggingLevel;
         newAction.Owner = this;
 
         actionRoot.transform.SetParent(actionsRoot.transform);
@@ -123,7 +124,7 @@ private List<Tuple<TimeInversibleAction, GameObject>> actionsStorage = new List<
     /// </summary>
     internal void SignalActionStartFailed(TimeInversibleAction action)
     {
-        Debug.Log($"The following action could not start and will be discarded: {action}");
+        Log($"The following action could not start and will be discarded: {action}");
         DestroyAction(action);
     }
 
@@ -147,7 +148,7 @@ private List<Tuple<TimeInversibleAction, GameObject>> actionsStorage = new List<
         }
         else
         {
-            Debug.LogError($"The following action was not destroyed since it's not one of this object's actions: {action}");
+            LogError($"The following action was not destroyed since it's not one of this object's actions: {action}");
         }
     }
 }

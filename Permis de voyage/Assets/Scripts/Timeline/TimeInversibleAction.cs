@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public abstract class TimeInversibleAction : MonoBehaviour
+[Serializable]
+public abstract class TimeInversibleAction : VerboseComponent
 {
     /// <summary>
     /// Identifier of this task
@@ -116,7 +116,19 @@ public abstract class TimeInversibleAction : MonoBehaviour
     /// <summary>
     /// Etat actuel de cette action.
     /// </summary>
-    public State CurrentState { get; private set; }
+    public State CurrentState
+    {
+        get => currentState;
+        private set
+        {
+            if (currentState != value)
+                Log($"Changing state: {currentState} -> {value}");
+            else
+                Log($"Remaining in state {currentState}");
+            currentState = value;
+        }
+    }
+    private State currentState;
 
     protected virtual void Awake()
     {
@@ -126,8 +138,9 @@ public abstract class TimeInversibleAction : MonoBehaviour
         localTime = localTime  != null ? localTime : GetComponent<LocalTime>();
     }
 
-    protected virtual void Update()
+    protected override void Update()
     {
+        base.Update();
         switch (CurrentState)
         {
             case State.Unknown:
