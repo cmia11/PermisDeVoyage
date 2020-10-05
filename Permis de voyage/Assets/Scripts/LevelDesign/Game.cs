@@ -34,6 +34,9 @@ public class Game : MonoBehaviour
     [SerializeField]
     private int menuSceneIndex = 0;
 
+    [SerializeField]
+    private int briefingSceneIndex = 1;
+
     private int? currentLevelIndex = null;
 
     public static bool IsInstanceSet => instance != null;
@@ -62,7 +65,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    public void StartPlaying()
+    public void GoToFirstLevel()
     {
         if (levelSceneIndices.Count < 1)
             throw new InvalidOperationException("The list of level scenes indices (from the Build settings) is not set. Unable to start playing.");
@@ -78,6 +81,11 @@ public class Game : MonoBehaviour
     public void GoToTitleScene()
     {
         SceneManager.LoadScene(menuSceneIndex);
+    }
+
+    public void GoToBriefing()
+    {
+        SceneManager.LoadScene(briefingSceneIndex);
     }
 
     public void WinLevel(Level level)
