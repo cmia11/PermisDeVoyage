@@ -28,6 +28,11 @@ public class MoveAction : TimeInversibleAction
                 (1 - ratio) * p1.Angle + ratio * p2.Angle
             );
         }
+
+        public override string ToString()
+        {
+            return $"[HistoryDataPoint Time: {Time}, Position: {Position}, Angle: {Angle}]";
+        }
     }
 
     /// <summary>
@@ -105,13 +110,7 @@ public class MoveAction : TimeInversibleAction
     /// Therefore it's possible that their "Time" property goes decreasing if the action
     /// first started while the local time was going back.
     /// </summary>
-    private List<HistoryDataPoint> history = new List<HistoryDataPoint>();
-
-    // Movement parameters in the Unity reference time
-    private Vector3? lastOwnerPosition;
-    private Vector3 ownerVelocity;
-    private float? lastOwnerAngle;
-    private float ownerAngularVelocity;
+    private readonly List<HistoryDataPoint> history = new List<HistoryDataPoint>();
     private RigidbodyType2D originalRBType;
 
     /// <summary>
@@ -131,90 +130,64 @@ public class MoveAction : TimeInversibleAction
 
     protected override void OnStartedForward()
     {
-        Transform ownerTransform = Owner.transform;
-        ResetSpeedMeasure();
+        history.Clear();
+        history.Add(new HistoryDataPoint(
+            LocalTime.Value,
+            Owner.transform.position,
+            Owner.transform.rotation.eulerAngles.z
+        ));
+        SetIsPlayingBack(false);
     }
 
     protected override void OnStartedBackwards()
     {
-        OnStartedForward();
         SetIsPlayingBack(true);
+    }
+
+    protected override void OnCompletedForward()
+    {
+        SetIsPlayingBack(false);
     }
 
     protected override void OnCompletedBackwards()
     {
-        // Move actions are supposed to be created when the thing starts moving.
-        // So it goes back to zero speed when we're done. This is also a way to prevent
-        // new spurious MoveActions to be spawned because we left the owner moving just a little bit.
-        ownerVelocity = Vector2.zero;
-        ownerAngularVelocity = 0;
         SetIsPlayingBack(false);
-    }
-
-    private void ResetSpeedMeasure()
-    {
-        lastOwnerPosition = null;
-        ownerVelocity = Vector2.zero;
-        lastOwnerAngle = null;
-        ownerAngularVelocity = 0;
+        base.OnCompletedBackwards();
     }
 
     protected override bool OnMakingProgress()
     {
         bool isDone = false;
-        Transform ownerTransform = Owner.transform;
 
-        if (lastOwnerPosition.HasValue && lastOwnerAngle.HasValue)
+        // Compute whever we're recording points or playing back the history.
+        float actionProgressSign = (TimeDirectionSign.Value * LocalTime.DeltaTime);
+        if (actionProgressSign > 0)
         {
-            // Compute the owner new speed and angular speed
-            if (LocalTime.DeltaTime > 0)
+            SetIsPlayingBack(false);
+            RecordHistory();
+            if (!Owner.IsMoving)
             {
-                ownerVelocity = (ownerTransform.position - lastOwnerPosition.Value) / LocalTime.DeltaTime;
-                ownerAngularVelocity = (ownerTransform.localRotation.eulerAngles.z - lastOwnerAngle.Value) / LocalTime.DeltaTime;
-            }
-            else
-            {
-                ownerVelocity = Vector3.zero;
-                ownerAngularVelocity = 0;
-            }
-
-            // Compute whever we're recording points or playing back the history.
-            float actionProgressSign = (TimeDirectionSign.Value * LocalTime.DeltaTime);
-            if (actionProgressSign > 0)
-            {
-                SetIsPlayingBack(false);
-                if (ownerVelocity != Vector3.zero || ownerAngularVelocity != 0)
-                {
-                    RecordHistory();
-                }
-                else
-                {
-                    // Exit condition = we have stopped
-                    isDone = true;
-                }
-            }
-            else if (actionProgressSign < 0)
-            {
-                SetIsPlayingBack(true);
-                if ((ForwardStartTime.Value - LocalTime.Value) * TimeDirectionSign < 0)
-                {
-                    DoPlayback();
-                }
-                else
-                {
-                    // Exit condition = we have played back the whole history.
-                    isDone = true;
-                }
-            }
-            else
-            {
-                // The local time is frozen: nothing happens this frame.
+                // Exit condition = we have stopped
+                isDone = true;
             }
         }
-
-        // Update for next frame
-        lastOwnerPosition = ownerTransform.position;
-        lastOwnerAngle = ownerTransform.localRotation.eulerAngles.z;
+        else if (actionProgressSign < 0)
+        {
+            SetIsPlayingBack(true);
+            if ((LocalTime.Value - ForwardStartTime.Value) * TimeDirectionSign > 0)
+            {
+                DoPlayback();
+            }
+            else
+            {
+                // Exit condition = we have played back the whole history.
+                isDone = true;
+            }
+        }
+        else
+        {
+            // The local time is frozen: nothing happens this frame.
+        }
         return isDone;
     }
 
@@ -229,12 +202,12 @@ public class MoveAction : TimeInversibleAction
     {
         Rigidbody2D targetRB = GetTargetRigidbody();
         targetRB.bodyType = originalRBType;
-        if (!targetRB.isKinematic)
-        {
-            // Apply speeds to the thing as it goes back to the realm of normal physics
-            targetRB.velocity = ownerVelocity;
-            targetRB.angularVelocity = ownerAngularVelocity;
-        }
+        //if (!targetRB.isKinematic)
+        //{
+        //    // Apply speeds to the thing as it goes back to the realm of normal physics
+        //    targetRB.velocity = ownerVelocity;
+        //    targetRB.angularVelocity = ownerAngularVelocity;
+        //}
     }
 
     private Rigidbody2D GetTargetRigidbody()
@@ -260,11 +233,10 @@ public class MoveAction : TimeInversibleAction
 
     private void RecordHistory()
     {
-        Transform ownerTransform = Owner.transform;
         var historyPoint = new HistoryDataPoint(
             LocalTime.Value,
-            ownerTransform.position,
-            ownerTransform.rotation.eulerAngles.z
+            Owner.transform.position,
+            Owner.transform.rotation.eulerAngles.z
         );
         if (history.Count < 2)
         {
@@ -274,16 +246,18 @@ public class MoveAction : TimeInversibleAction
         else
         {
             HistoryDataPoint point_n_1 = history[history.Count - 1];
-            HistoryDataPoint point_n_2 = history[history.Count - 1];
+            HistoryDataPoint point_n_2 = history[history.Count - 2];
             if (Mathf.Abs(point_n_1.Time - point_n_2.Time) >= TimeResolution)
             {
                 // There is enough gap between the last two measures ; add one more.
                 history.Add(historyPoint);
+                Debug.Log($"Recorded new point at index {history.Count - 1}: {historyPoint}");
             }
             else
             {
                 // The last two points were very close; replace the most recent one.
                 history[history.Count - 1] = historyPoint;
+                Debug.Log($"Updated index {history.Count - 1}: {historyPoint}");
             }
         }
     }
@@ -301,8 +275,8 @@ public class MoveAction : TimeInversibleAction
             while (true)
             {
                 int pivotIndex = (ivMinIndex + ivMaxIndex) / 2;
-                HistoryDataPoint pivotBound1 = history[ivMinIndex];
-                HistoryDataPoint pivotBound2 = history[ivMinIndex + 1];
+                HistoryDataPoint pivotBound1 = history[pivotIndex];
+                HistoryDataPoint pivotBound2 = history[pivotIndex + 1];
 
                 if (IsCurrentInterval(pivotBound1, pivotBound2))
                 {
@@ -313,7 +287,7 @@ public class MoveAction : TimeInversibleAction
                 else if (ivMinIndex != ivMaxIndex)
                 {
                     // There are more intervals to explore, let's split the search space either on the left or right
-                    bool checkLeft = (TimeDirectionSign * (timeNow - pivotBound1.Time) > 0);
+                    bool checkLeft = (TimeDirectionSign * (timeNow - pivotBound1.Time) < 0);
                     if (checkLeft && ivMinIndex == pivotIndex || !checkLeft && ivMaxIndex == pivotIndex)
                     {
                         Debug.LogError($"Failed to locate the interval for local time {timeNow} in the history.");
@@ -342,10 +316,16 @@ public class MoveAction : TimeInversibleAction
                 float intervalRatio = GetUnboundedRatioInInterval(p1, p2);
                 HistoryDataPoint interpolation = HistoryDataPoint.Lerp(p1, p2, intervalRatio);
 
+                Debug.Log($"Applying saved point: {interpolation}");
+
                 // Apply these to the object
                 Transform ownerTransform = Owner.transform;
                 ownerTransform.position = interpolation.Position;
                 ownerTransform.rotation = Quaternion.Euler(0,0,interpolation.Angle);
+
+                // Discard things that were played back
+                while (history.Count > properIntervalIndex.Value + 2)
+                    history.RemoveAt(history.Count - 1);
             }
         }
         else

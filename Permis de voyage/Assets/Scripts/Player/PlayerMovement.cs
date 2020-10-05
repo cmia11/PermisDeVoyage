@@ -7,10 +7,8 @@ public class PlayerMovement : MonoBehaviour
     public CharacterController2D controller;
 
 	public float runSpeed = 40f;
-
 	float horizontalMove = 0f;
     bool jump = false;
-	bool crouch = false;
 
     // Update is called once per frame
     void Update()

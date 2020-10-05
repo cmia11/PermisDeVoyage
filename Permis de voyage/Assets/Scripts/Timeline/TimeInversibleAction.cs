@@ -202,7 +202,9 @@ public abstract class TimeInversibleAction : MonoBehaviour
     /// <summary>
     /// See OnStartedForward.
     /// </summary>
-    protected virtual void OnCompletedBackwards() { }
+    protected virtual void OnCompletedBackwards() {
+        Owner.SignalActionCompletedBackwards(this);
+    }
 
     #endregion
 

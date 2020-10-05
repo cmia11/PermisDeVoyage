@@ -17,9 +17,14 @@ public class LocalTime: MonoBehaviour
     private float value = 0;
 
     /// <summary>
-    /// Value of this local time. Starts at zero by default.
+    /// Equivalent of Time.deltaTime in this timeline.
     /// </summary>
     public float DeltaTime => Time.deltaTime * relativeSpeed;
+
+    /// <summary>
+    /// Equivalent of Time.fixedDeltaTime in this timeline.
+    /// </summary>
+    public float FixedDeltaTime => Time.fixedDeltaTime * relativeSpeed;
 
     /// <summary>
     /// Speed at which this time flows, relative to the Unity engine time (Time.time).

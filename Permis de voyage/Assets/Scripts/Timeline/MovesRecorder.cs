@@ -9,6 +9,8 @@ public class MovesRecorder : MonoBehaviour
 {
     // No action will be started before this settle time has elapsed, in order to let some time to the physics to get everything in place. 
     public float settleTime = 0.5f;
+    public bool singleActivation = false;
+
     private float enableTime = 0;
 
     /// <summary>
@@ -38,6 +40,9 @@ public class MovesRecorder : MonoBehaviour
             {
                 MoveAction newAction = Target.CreateAction<MoveAction>();
                 newAction.StartFreeMove();
+
+                if (singleActivation)
+                    enabled = false;
             }
         }
     }
