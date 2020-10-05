@@ -65,7 +65,7 @@ private List<Tuple<TimeInversibleAction, GameObject>> actionsStorage = new List<
     {
         if (localTime == null)
         {
-            localTime = GameManager.Instance.DefaultTime;
+            localTime = Level.Instance.DefaultTime;
             if (localTime == null)
                 LogWarning("The local time of this object has not been set at the end of Start. This is not gonna end well!");
         }

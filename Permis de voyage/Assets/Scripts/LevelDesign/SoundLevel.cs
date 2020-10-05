@@ -9,7 +9,7 @@ public class SoundLevel : MonoBehaviour
     void Start()
     {
         audiosource = GetComponent<AudioSource>();
-        audiosource.pitch = GameManager.Instance.DefaultTime.RelativeSpeed;
+        audiosource.pitch = Level.Instance.DefaultTime.RelativeSpeed;
         audiosource.loop = true;
         //Debug.Log(GameManager.Instance.DefaultTime.RelativeSpeed);
         audiosource.Play();

@@ -14,8 +14,8 @@ public class InvertTime : MonoBehaviour
     {
         if (!string.IsNullOrEmpty(buttonName) && Input.GetButtonDown(buttonName) || Input.GetKeyDown(keyName))
         {
-            GameManager.Instance.DefaultTime.RelativeSpeed *= -1;
-            Debug.Log("Default timeline speed set to " + GameManager.Instance.DefaultTime.RelativeSpeed.ToString());
+            Level.Instance.DefaultTime.RelativeSpeed *= -1;
+            Debug.Log("Default timeline speed set to " + Level.Instance.DefaultTime.RelativeSpeed.ToString());
         }
     }
 }
