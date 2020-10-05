@@ -319,9 +319,9 @@ public class MoveAction : TimeInversibleAction
                 LogDebug($"Applying saved point: {interpolation}");
 
                 // Apply these to the object
-                Transform ownerTransform = Owner.transform;
-                ownerTransform.position = interpolation.Position;
-                ownerTransform.rotation = Quaternion.Euler(0,0,interpolation.Angle);
+                var rb = GetTargetRigidbody();
+                rb.MovePosition(interpolation.Position);
+                rb.MoveRotation(interpolation.Angle);
 
                 // Discard things that were played back
                 while (history.Count > properIntervalIndex.Value + 2)

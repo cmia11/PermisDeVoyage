@@ -47,12 +47,12 @@ public class VerboseComponent : MonoBehaviour
 
     protected void LogDebug(object message)
     {
-        LogAtLevel(LogLevel.Info, message, null);
+        LogAtLevel(LogLevel.Debug, message, null);
     }
 
     protected void LogDebug(object message, UnityEngine.Object context)
     {
-        LogAtLevel(LogLevel.Info, message, context);
+        LogAtLevel(LogLevel.Debug, message, context);
     }
 
     protected void Log(object message)
