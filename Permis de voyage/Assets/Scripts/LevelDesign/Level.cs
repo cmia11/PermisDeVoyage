@@ -72,6 +72,6 @@ public class Level : MonoBehaviour
     /// </summary>
     public void OnReplayLevelClick()
     {
-        Game.Instance.RestartLevel();
+        Game.Instance.ReloadCurrentScene();
     }
 }

@@ -18,6 +18,6 @@ public class MainMenu : MonoBehaviour
     public void StartGame()
     {
         audioSource.PlayOneShot(mouseClick, 1.0f);
-        Game.Instance.GoToBriefing();
+        Game.Instance.GoToFirstLevel();
      }
 }

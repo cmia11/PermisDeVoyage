@@ -4,10 +4,9 @@ public class LayerStartLevel : MonoBehaviour
 {
     void OnTriggerEnter2D(Collider2D other)
     {
-        Level currentLevel = Level.Instance;
-        if (other.name == "Player" && currentLevel.HasReachedFarSide)
+        if (other.name == "Player" && Level.Instance.HasReachedFarSide)
         {
-            Game.Instance.WinLevel(currentLevel);
+            Game.Instance.WinLevel();
         }
     }
 }

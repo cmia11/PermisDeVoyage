@@ -7,7 +7,6 @@ public class InterfaceTimeLine : MonoBehaviour
 {
     public TextMeshProUGUI horloge;
 
-    // Update is called once per frame
     void Update()
     {
         horloge.text = Level.Instance.DefaultTime.Value.ToString("0.00");
