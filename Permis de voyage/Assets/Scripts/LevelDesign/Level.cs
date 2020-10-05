@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.Rendering.PostProcessing;
 
 [RequireComponent(typeof(LocalTime))]
 
@@ -16,14 +17,16 @@ public class Level : MonoBehaviour
     /// Has the player reached the other end of the level?
     /// </summary>
     public bool HasReachedFarSide {
-        get => hasReachedOtherEnd;
+        get => hasReachedFarSide;
         set
         {
-            hasReachedOtherEnd = value;
-            DefaultTime.RelativeSpeed = hasReachedOtherEnd ? -1.0f : 1.0f;
+            hasReachedFarSide = value;
+            DefaultTime.RelativeSpeed = hasReachedFarSide ? -1.0f : 1.0f;
+            if (shadowPostprocess != null)
+                shadowPostprocess.enabled = hasReachedFarSide;
         }
     }
-    public bool hasReachedOtherEnd;
+    public bool hasReachedFarSide;
 
     /// <summary>
     /// Unique instance of the game manager
@@ -44,6 +47,8 @@ public class Level : MonoBehaviour
     }
     private static Level instance;
 
+    public PostProcessLayer shadowPostprocess;
+
     protected virtual void Awake()
     {
         if (instance == null)
@@ -54,5 +59,19 @@ public class Level : MonoBehaviour
         DefaultTime.RelativeSpeed = 1.0f;
     }
 
+    protected virtual void Update()
+    {
+        if (HasReachedFarSide && DefaultTime.Value <= 0)
+        {
+            Game.Instance.LoseLevel(this);
+        }
+    }
 
+    /// <summary>
+    /// Callback for the "restart level" button
+    /// </summary>
+    public void OnReplayLevelClick()
+    {
+        Game.Instance.RestartLevel();
+    }
 }

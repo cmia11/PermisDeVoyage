@@ -111,7 +111,6 @@ GameObject:
   - component: {fileID: 6942463223331745927}
   - component: {fileID: 6942463223331745924}
   - component: {fileID: 6942463223331745926}
-  - component: {fileID: 6942463223331745921}
   m_Layer: 5
   m_Name: RestartButton
   m_TagString: Untagged
@@ -165,7 +164,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 39c400b16155ba74094735400251682e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8ab8bc9613eed244dabc22330217b072, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -218,7 +217,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 6942463223331745921}
+      - m_Target: {fileID: 0}
         m_MethodName: GameOver
         m_Mode: 1
         m_Arguments:
@@ -229,19 +228,3 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 1
---- !u!114 &6942463223331745921
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6942463223331745930}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 50fa96c274e234948a00f146a2b9161a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  isGameOver: 0
-  isPlayerDead: 0
-  levelNow: 0
-  levelWin: 0
