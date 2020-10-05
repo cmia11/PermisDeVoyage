@@ -6,22 +6,56 @@ using UnityEngine;
 public abstract class TimeInversibleAction : MonoBehaviour
 {
     /// <summary>
+    /// Identifier of this task
+    /// </summary>
+    public int ID { get; private set; }
+    private static int nextID = 0;
+
+    /// <summary>
     /// The local time which this action uses to update its state.
     /// </summary>
     public LocalTime LocalTime
     {
         get
         {
-            return timeline ?? throw new NullReferenceException(
+            return localTime != null ? localTime : throw new NullReferenceException(
                 $"The {nameof(LocalTime)} property of this object should have been set before using it.");
         }
         set
         {
-            timeline = value ?? throw new ArgumentNullException();
+            localTime = value != null ? value : throw new ArgumentNullException();
         }
     }
     [SerializeField]
-    private LocalTime timeline;
+    private LocalTime localTime;
+
+    /// <summary>
+    /// The owner of this action.
+    /// </summary>
+    public TimelinedObject Owner
+    {
+        get
+        {
+            return owner != null ? owner : throw new NullReferenceException(
+                $"The {nameof(Owner)} property of this object should have been set before using it.");
+        }
+        set
+        {
+            owner = value != null ? value : throw new ArgumentNullException();
+        }
+    }
+    [SerializeField]
+    private TimelinedObject owner;
+
+    /// <summary>
+    /// Indicates whever this action may start in its "normal" direction.
+    /// </summary>
+    public virtual bool CanStartForward => true;
+
+    /// <summary>
+    /// Indicates whever this action may start in its "reversed" direction.
+    /// </summary>
+    public virtual bool CanStartBackwards => true;
 
     /// <summary>
     /// The local time at which this action started forward (or completed backwards).
@@ -86,9 +120,10 @@ public abstract class TimeInversibleAction : MonoBehaviour
 
     protected virtual void Awake()
     {
+        ID = nextID++;
         // In case we add an action on the same GameObject as the TimelinedObject it belongs to, it will
         // share its local time automatically.
-        timeline = timeline ?? GetComponent<LocalTime>();
+        localTime = localTime  != null ? localTime : GetComponent<LocalTime>();
     }
 
     protected virtual void Update()
@@ -110,6 +145,30 @@ public abstract class TimeInversibleAction : MonoBehaviour
             default:
                 throw new NotImplementedException($"Unsupported state {CurrentState}");
         }
+    }
+
+    /// <summary>
+    /// Indicates whever this action is active at the specified point in its local time or
+    /// was active when it crossed this point in time last time.
+    /// </summary>
+    public bool? IsActiveAt(float localTime)
+    {
+        bool? res = null;
+        switch (CurrentState)
+        {
+            case State.RunningForward:
+                // Active if the looked up time if between the current time and the start time.
+                res = (localTime - ForwardStartTime.Value) * (localTime - LocalTime.Value) <= 0;
+                break;
+            case State.RunningBackwards:
+                res = (localTime - ForwardCompleteTime.Value) * (localTime - LocalTime.Value) <= 0;
+                break;
+            default:
+                if (ForwardCompleteTime.HasValue && ForwardCompleteTime.HasValue)
+                    res = ForwardStartTime.Value <= localTime && localTime <= ForwardCompleteTime.Value;
+                break;
+        }
+        return res;
     }
 
     #region "Methods to override in children"
@@ -143,7 +202,9 @@ public abstract class TimeInversibleAction : MonoBehaviour
     /// <summary>
     /// See OnStartedForward.
     /// </summary>
-    protected virtual void OnCompletedBackwards() { }
+    protected virtual void OnCompletedBackwards() {
+        Owner.SignalActionCompletedBackwards(this);
+    }
 
     #endregion
 
@@ -151,17 +212,22 @@ public abstract class TimeInversibleAction : MonoBehaviour
     {
         if (TimeDirectionSign.Value * (LocalTime.Value - ForwardStartTime.Value) >= 0)
         {
-            StartForward();
-            if (IsIntantaneous)
+            if (CanStartForward)
             {
-                CompleteForward();
+                StartForward();
+                if (IsIntantaneous)
+                {
+                    CompleteForward();
+                }
+                else
+                {
+                    bool isDone = OnMakingProgress();
+                    if (isDone)
+                        CompleteForward();
+                }
             }
             else
-            {
-                bool isDone = OnMakingProgress();
-                if (isDone)
-                    CompleteForward();
-            }
+                Owner.SignalActionStartFailed(this);
         }
     }
 
@@ -182,22 +248,28 @@ public abstract class TimeInversibleAction : MonoBehaviour
     {
         if (TimeDirectionSign.Value * (ForwardCompleteTime.Value - LocalTime.Value) >= 0)
         {
-            StartBackwards();
-            if (IsIntantaneous)
+            if (CanStartBackwards)
             {
-                CompleteBackwards();
+                StartBackwards();
+                if (IsIntantaneous)
+                {
+                    CompleteBackwards();
+                }
+                else
+                {
+                    bool isDone = OnMakingProgress();
+                    if (isDone)
+                        CompleteBackwards();
+                }
             }
             else
-            {
-                bool isDone = OnMakingProgress();
-                if (isDone)
-                    CompleteBackwards();
-            }
+                Owner.SignalActionStartFailed(this);
         }
     }
 
     protected void StartForward()
     {
+        AssertValidTransition(CanStartForward, "This action cannot start at the moment.");
         AssertValidTransition(
             CurrentState == State.Unknown || CurrentState == State.Before,
             "This operation can only be performed if the action never started, or its local time is before its last start time.");
@@ -217,6 +289,7 @@ public abstract class TimeInversibleAction : MonoBehaviour
 
     protected void StartBackwards()
     {
+        AssertValidTransition(CanStartBackwards, "This action cannot start in reverse mode at the moment.");
         AssertValidTransition(
             CurrentState == State.Unknown || CurrentState == State.After,
             "This operation can only be performed if the action never started, or its local time is after its last end time.");
@@ -238,8 +311,15 @@ public abstract class TimeInversibleAction : MonoBehaviour
         if (!isValid)
         {
             throw new InvalidOperationException(
-                errorMessage + $"\nCurrent state = {CurrentState}, new local time = {LocalTime.Value}, " +
-                $"forward start time = {ForwardCompleteTime}, forward complete time = {ForwardCompleteTime}.");
+                errorMessage +
+                $"\n  * Current state = {CurrentState}\n  * current local time = {LocalTime.Value}\n" +
+                $"  * forward start time = {ForwardCompleteTime}\n  * forward complete time = {ForwardCompleteTime}\n" +
+                $"  * CanStartForward = {CanStartForward}\n  * CanStartBackwards = {CanStartBackwards}");
         }
+    }
+
+    public override string ToString()
+    {
+        return $"[Action type: {GetType().Name}, ID: {ID}]";
     }
 }
