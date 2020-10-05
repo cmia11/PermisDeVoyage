@@ -66,4 +66,12 @@ public class Level : MonoBehaviour
             Game.Instance.LoseLevel(this);
         }
     }
+
+    /// <summary>
+    /// Callback for the "restart level" button
+    /// </summary>
+    public void OnReplayLevelClick()
+    {
+        Game.Instance.RestartLevel();
+    }
 }
