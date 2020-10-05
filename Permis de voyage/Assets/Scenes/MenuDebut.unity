@@ -385,8 +385,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f0b71cefaf98294296416fbcd872aa1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  backVocal: {fileID: 0}
-  backmusic: {fileID: 0}
+  mouseClick: {fileID: 8300000, guid: 9793b7f09b4b0884f9bdedd9be2daa61, type: 3}
 --- !u!82 &962718386
 AudioSource:
   m_ObjectHideFlags: 0

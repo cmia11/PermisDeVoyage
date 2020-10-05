@@ -6,8 +6,8 @@ using UnityEngine.SceneManagement;
 public class MainMenu : MonoBehaviour
 {
     private AudioSource audioSource;
-    public AudioClip backVocal;
-    public AudioClip backmusic;
+
+    public AudioClip mouseClick;
     // Start is called before the first frame update
     void Start()
     {
@@ -24,6 +24,7 @@ public class MainMenu : MonoBehaviour
 
     public void StartGame()
     {
+        audioSource.PlayOneShot(mouseClick, 1.0f);
         SceneManager.LoadScene(1);
 
 
