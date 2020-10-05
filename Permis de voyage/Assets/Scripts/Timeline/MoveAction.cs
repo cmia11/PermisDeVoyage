@@ -202,12 +202,6 @@ public class MoveAction : TimeInversibleAction
     {
         Rigidbody2D targetRB = GetTargetRigidbody();
         targetRB.bodyType = originalRBType;
-        //if (!targetRB.isKinematic)
-        //{
-        //    // Apply speeds to the thing as it goes back to the realm of normal physics
-        //    targetRB.velocity = ownerVelocity;
-        //    targetRB.angularVelocity = ownerAngularVelocity;
-        //}
     }
 
     private Rigidbody2D GetTargetRigidbody()

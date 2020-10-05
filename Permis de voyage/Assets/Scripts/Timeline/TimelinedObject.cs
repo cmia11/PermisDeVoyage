@@ -32,10 +32,7 @@ public class TimelinedObject : VerboseComponent
     /// <summary>
     /// Tests whever this object is moving.
     /// </summary>
-    public bool IsMoving => (
-        velocity.sqrMagnitude > moveSpeedSqrThreshold ||
-        Mathf.Abs(angularVelocity) > moveAngleSpeedThreshold
-    );
+    public bool IsMoving => velocity.sqrMagnitude > 0 || Mathf.Abs(angularVelocity) > 0;
 
     private GameObject actionsRoot;
     private static readonly string actionsRootName = "Actions";
@@ -45,9 +42,6 @@ public class TimelinedObject : VerboseComponent
     private Vector3 velocity;
     private float? lastAngle;
     private float angularVelocity;
-
-    float moveSpeedSqrThreshold = 0.01f;
-    float moveAngleSpeedThreshold = 60;
 
 /// <summary>
 /// Each registered action is given a private GameObject where it can store its stuff, and make it easier to clean.
@@ -142,6 +136,7 @@ private List<Tuple<TimeInversibleAction, GameObject>> actionsStorage = new List<
         int storageIndex = actionsStorage.FindIndex(t => t.Item1 == action);
         if (storageIndex >= 0)
         {
+            LogDebug("Destroying action: " + action.ToString());
             GameObject actionObject = actionsStorage[storageIndex].Item2;
             actionsStorage.RemoveAt(storageIndex);
             Destroy(actionObject);
