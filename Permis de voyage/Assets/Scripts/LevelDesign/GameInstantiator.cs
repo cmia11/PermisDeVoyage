@@ -2,16 +2,16 @@
 
 public class GameInstantiator : MonoBehaviour
 {
-    public Game gamePrefab;
+    public GameObject gamePrefab;
     
     protected virtual void Awake()
     {
-        if (Game.IsInstanceSet)
+        if (!Game.IsInstanceSet)
         {
             Instantiate(gamePrefab);
         }
 
         // We have no business here anymore
-        Destroy(this);
+        Destroy(gameObject);
     }
 }

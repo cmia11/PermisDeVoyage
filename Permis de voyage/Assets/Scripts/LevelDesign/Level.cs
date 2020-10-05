@@ -31,14 +31,11 @@ public class Level : MonoBehaviour
     public static Level Instance {
         get
         {
-            if (instance == null)
-            {
-                Debug.LogWarning($"Auto-instancing a {typeof(Level).Name} since none is registered when accessing the {nameof(Instance)} property.");
-                GameObject emergencyObject = new GameObject("Auto-instantiated " + typeof(Level).Name);
-                // Will set itself to the instance field on Awake().
-                emergencyObject.AddComponent<Level>();
-            }
-            return instance;
+            if (instance != null)
+                return instance;
+            else
+                throw new NullReferenceException($"Missing a {typeof(Level).Name} instance in the current scene. " +
+                    $"Please add an instance of the level prefab to this scene.");
         }
         private set
         {

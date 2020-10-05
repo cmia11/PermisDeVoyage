@@ -17,7 +17,8 @@ public class Game : MonoBehaviour
             if (instance != null)
                 return instance;
             else
-                throw new NullReferenceException($"Missing a {typeof(Level).Name} instance in the current scene.");
+                throw new NullReferenceException($"Missing a {typeof(Game).Name} instance in the current scene. " +
+                    $"Consider adding an instance of the {typeof(GameInstantiator)} prefab to the scene.");
         }
         private set
         {
@@ -39,13 +40,26 @@ public class Game : MonoBehaviour
 
     protected virtual void Awake()
     {
+        // Set the Instance property
         if (instance == null)
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
         }
         else if (instance != this)
+        {
             Destroy(gameObject);
+            return;
+        }
+
+        // Bootstrap if we are started directly in a level scene
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        int levelIndexSearch = levelSceneIndices.IndexOf(currentSceneIndex);
+        if (levelIndexSearch >= 0)
+        {
+            Debug.Log("Start level index detected: " + levelIndexSearch.ToString());
+            currentLevelIndex = levelIndexSearch;
+        }
     }
 
     public void StartPlaying()
@@ -61,20 +75,31 @@ public class Game : MonoBehaviour
         SceneManager.LoadScene(levelSceneIndices[currentLevelIndex.Value]);
     }
 
+    public void GoToTitleScene()
+    {
+        SceneManager.LoadScene(menuSceneIndex);
+    }
+
     public void WinLevel(Level level)
     {
-        if (!currentLevelIndex.HasValue)
-            throw new InvalidOperationException("There is no current level to win.");
-        if (currentLevelIndex.Value < levelSceneIndices.Count -1)
+        if (currentLevelIndex.HasValue)
         {
-            // Go to the next level
-            currentLevelIndex++;
-            RestartLevel();
+            if (currentLevelIndex.Value < levelSceneIndices.Count - 1)
+            {
+                Debug.Log("Loading the next level scene");
+                currentLevelIndex++;
+                RestartLevel();
+            }
+            else
+            {
+                Debug.Log("All levels have been completed => Back to menu, until we have a credits scene.");
+                GoToTitleScene();
+            }
         }
         else
         {
-            // All levels have been completed => Back to menu, until we have a credits scene.
-            SceneManager.LoadScene(menuSceneIndex);
+            Debug.Log("No current level is defined; this may happen if one started a level scene directly. Going back to the title scene");
+            GoToTitleScene();
         }
     }
 }
