@@ -55,10 +55,10 @@ public class Game : MonoBehaviour
 
     public void GoToFirstLevel()
     {
-        if (firstLevelBuildIndex >= SceneManager.sceneCount)
-            throw new InvalidOperationException("The first level scene index (from the Build settings) does not match an existing scene. " +
-                "Unable to start playing.");
-        ReloadCurrentScene();
+        if (firstLevelBuildIndex >= SceneManager.sceneCountInBuildSettings)
+            throw new InvalidOperationException($"The first level scene index {firstLevelBuildIndex} does not match an existing scene " +
+                $"(scene count = {SceneManager.sceneCountInBuildSettings}). Unable to start playing.");
+        SceneManager.LoadScene(firstLevelBuildIndex);
     }
 
     public void ReloadCurrentScene()
@@ -71,10 +71,15 @@ public class Game : MonoBehaviour
         SceneManager.LoadScene(menuSceneBuildIndex);
     }
 
+    public void GoToCreditsScene()
+    {
+        SceneManager.LoadScene(creditsBuildIndex);
+    }
+
     public void WinLevel()
     {
         int currentSceneIndexIndex = SceneManager.GetActiveScene().buildIndex;
-        if (0 <= currentSceneIndexIndex && currentSceneIndexIndex < SceneManager.sceneCount - 1)
+        if (0 <= currentSceneIndexIndex && currentSceneIndexIndex < SceneManager.sceneCountInBuildSettings - 1)
         {
             Debug.Log("Loading the next scene");
         SceneManager.LoadScene(currentSceneIndexIndex +1);
@@ -82,7 +87,7 @@ public class Game : MonoBehaviour
         else
         {
             Debug.Log("All levels have been completed => Go to the Credits scene.");
-            GoToTitleScene();
+            GoToCreditsScene();
         }
     }
 

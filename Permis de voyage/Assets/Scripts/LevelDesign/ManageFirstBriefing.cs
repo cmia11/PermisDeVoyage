@@ -21,6 +21,6 @@ public class ManageFirstBriefing : MonoBehaviour
 
     public void StartLevel()
     {
-        Game.Instance.GoToFirstLevel();
+        Game.Instance.WinLevel();
     }
 }

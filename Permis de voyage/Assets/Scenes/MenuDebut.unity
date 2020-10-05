@@ -282,7 +282,6 @@ GameObject:
   - component: {fileID: 962718383}
   - component: {fileID: 962718382}
   - component: {fileID: 962718381}
-  - component: {fileID: 962718385}
   - component: {fileID: 962718387}
   - component: {fileID: 962718386}
   - component: {fileID: 962718388}
@@ -374,18 +373,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &962718385
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 962718380}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f0b71cefaf98294296416fbcd872aa1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!82 &962718386
 AudioSource:
   m_ObjectHideFlags: 0
