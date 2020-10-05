@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 50121148}
   - component: {fileID: 50121150}
   - component: {fileID: 50121149}
+  - component: {fileID: 50121151}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -155,8 +156,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 128.8, y: -50.2}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 128.8, y: 810}
+  m_SizeDelta: {x: 200, y: 46.245605}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &50121149
 MonoBehaviour:
@@ -177,8 +178,18 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Cr\xE9dits:\n\nEquipe du jeu\n\n- Marina Dehez\n- Cyril Mansour\n- Sabine
-    Dautzenberg\n- Yves Grasland\n- Hadrien Grasland\n- Claire Abadie"
+  m_text: "\r\nArchitecture int\xE9rieure\t\t\tMarina Dehez-Clementi\r\n\r\nArracheuse
+    de sons\t\t\tClaire Abadie\r\n\r\nChef d'orchestre fictif\t\t\tHadrien Grasland\r\n\r\nCostumi\xE8re
+    pour canid\xE9s\t\tMarina Dehez-Clementi\r\n\r\nCroqueuse de renards\t\t\tSabine
+    Dautzenberg\r\n\r\nD\xE9signeuse de niveaux\t\t\tSabine Dautzenberg\r\n\r\nDompteur
+    de cha\xEEnes\t\t\tYves Grasland\r\n\r\nExpert manutention lourde\t\tCyril Mansour\r\n\r\nExperte
+    logistique & op\xE9rations\t\tMarina Dehez-Clementi\r\n\r\nIng\xE9nieur hygi\xE8ne
+    et s\xE9curit\xE9\t\tHadrien Grasland\r\n\r\nMa\xEEtre du temps\t\t\t\tYves Grasland\r\n\r\nMetteuse
+    en sc\xE8ne\t\t\tClaire Abadie\r\n\r\nMinutage des op\xE9rations\t\t\tClaire
+    Abadie\r\n\r\nMonitrice tempo-\xE9cole                   \tSabine Dautzenberg\r\n\r\nPlanificateur
+    disruptif\t\t\tYves Grasland\r\n\r\nProgrammation temps r\xE9el\t\tCyril Mansour\r\n\r\nSondier
+    coupeur de souffle\t\tHadrien Grasland\r\n\r\nSp\xE9cialiste bois et mat\xE9riaux\t\tCyril
+    Mansour\r\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -241,7 +252,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 1
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: -444.8901, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -255,6 +266,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 50121147}
   m_CullTransparentMesh: 0
+--- !u!95 &50121151
+Animator:
+  serializedVersion: 3
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 50121147}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 2db45b54350678641a0f5f84808e152c, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &414128287
 GameObject:
   m_ObjectHideFlags: 0
@@ -644,8 +674,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 80, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 0, y: 0.0000030994}
+  m_SizeDelta: {x: 100, y: 135.49437}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2136017644
 MonoBehaviour:
@@ -660,7 +690,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.754717, g: 0.16019939, b: 0.43582237, a: 0.20392157}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.20392157}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
