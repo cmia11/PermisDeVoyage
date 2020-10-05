@@ -15,6 +15,6 @@ public class InterfaceTimeLine : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        horloge.text = Mathf.RoundToInt(GameManager.Instance.DefaultTime.Value).ToString();
+        horloge.text = GameManager.Instance.DefaultTime.Value.ToString("0.00");
     }
 }
