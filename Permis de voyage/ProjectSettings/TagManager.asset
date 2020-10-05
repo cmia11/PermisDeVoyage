@@ -3,7 +3,9 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - LayerStart
+  - LayerFinish
   layers:
   - Default
   - TransparentFX
@@ -37,12 +39,13 @@ TagManager:
   - 
   - 
   - 
-  - 
-  - 
   m_SortingLayers:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Button
+  - name: 
+    uniqueID: 1000770055
+    locked: 0
+  - name: 
     uniqueID: 3570414813
     locked: 0

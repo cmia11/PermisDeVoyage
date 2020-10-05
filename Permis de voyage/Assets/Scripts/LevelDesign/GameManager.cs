@@ -4,12 +4,15 @@ using UnityEngine;
 using System;
 
 [RequireComponent(typeof(LocalTime))]
+[RequireComponent(typeof(PlayerLevels))]
+
 public class GameManager : MonoBehaviour
 {
     /// <summary>
     /// Default timeline for most of the objects in the game
     /// </summary>
     public LocalTime DefaultTime { get; private set; }
+    public PlayerLevels Levels { get; private set; }
 
     /// <summary>
     /// Unique instance of the game manager
@@ -40,6 +43,7 @@ public class GameManager : MonoBehaviour
         else if (instance != this)
             Destroy(gameObject);
         DefaultTime = GetComponent<LocalTime>();
+        Levels = GetComponent<PlayerLevels>();
     }
 
 
