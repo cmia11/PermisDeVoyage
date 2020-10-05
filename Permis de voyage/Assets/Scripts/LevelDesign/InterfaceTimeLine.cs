@@ -18,5 +18,6 @@ public class InterfaceTimeLine : MonoBehaviour
     void Update()
     {
         horloge.text = GameManager.Instance.DefaultTime.Value.ToString("0.00");
+        
     }
 }
